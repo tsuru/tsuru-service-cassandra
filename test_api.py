@@ -19,6 +19,15 @@ class CreateInstanceTestCase(ApiTestCase):
         self.assertEqual(self.resp.status_code, 201)
 
 
+class RemoveInstanceTestCase(ApiTestCase):
+    def setUp(self):
+        super(RemoveInstanceTestCase, self).setUp()
+        self.resp = self.api.delete("/resources/my_instance")
+
+    def test_should_return_200(self):
+        self.assertEqual(self.resp.status_code, 200)
+
+
 class BindInstanceTestCase(ApiTestCase):
     def setUp(self):
         super(BindInstanceTestCase, self).setUp()
@@ -40,6 +49,7 @@ class UnbindInstanceTestCase(ApiTestCase):
 
     def test_should_return_200(self):
         self.assertEqual(self.resp.status_code, 200)
+
 
 
 

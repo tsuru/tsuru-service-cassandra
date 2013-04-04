@@ -15,3 +15,7 @@ def bind(name):
 @app.route("/resources/<name>/hostname/<host>", methods=["DELETE"])
 def unbind(name, host):
     return "", 200
+
+@app.route("/resources/<name>", methods=["DELETE"])
+def remove_instance(name):
+    return "", 200
