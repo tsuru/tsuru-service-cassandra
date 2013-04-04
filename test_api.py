@@ -51,6 +51,14 @@ class UnbindInstanceTestCase(ApiTestCase):
         self.assertEqual(self.resp.status_code, 200)
 
 
+class StatusInstanceTestCase(ApiTestCase):
+    def setUp(self):
+        super(StatusInstanceTestCase, self).setUp()
+        self.resp = self.api.get("/resources/my_instance/status")
+
+    def test_should_return_204(self):
+        self.assertEqual(self.resp.status_code, 204)
+
 
 
 if __name__ == "__main__":

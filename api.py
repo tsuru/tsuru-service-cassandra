@@ -7,6 +7,11 @@ app = Flask(__name__)
 def add_instance():
     return "", 201
 
+
+@app.route("/resources/<name>", methods=["DELETE"])
+def remove_instance(name):
+    return "", 200
+
 @app.route("/resources/<name>", methods=["POST"])
 def bind(name):
     out = jsonify(SOMEVAR="somevalue")
@@ -16,6 +21,7 @@ def bind(name):
 def unbind(name, host):
     return "", 200
 
-@app.route("/resources/<name>", methods=["DELETE"])
-def remove_instance(name):
-    return "", 200
+
+@app.route("/resources/<name>/status", methods=["GET"])
+def status(name):
+    return "", 204
