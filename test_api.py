@@ -1,9 +1,34 @@
 import json
+import os
 import unittest
+from cql import ProgrammingError
+from mock import patch, MagicMock, call
 import api
 
 
+
+class FakeConnection(object):
+    def execute(self, xxx):
+        return "fake"
+
 class ApiTestCase(unittest.TestCase):
+
+
+
+    @classmethod
+    def setUpClass(cls):
+        super(ApiTestCase, cls).setUpClass()
+        os.environ["TSURU_CASSANDRA_SERVER"] = "my-cassandra-host.com"
+        os.environ["TSURU_CASSANDRA_PORT"] = "8888"
+        reload(api)
+
+
+    @classmethod
+    def tearDownClass(cls):
+        super(ApiTestCase, cls).tearDownClass()
+        del os.environ["TSURU_CASSANDRA_SERVER"]
+        del os.environ["TSURU_CASSANDRA_PORT"]
+
 
     def setUp(self):
         self.api = api.app.test_client()
@@ -11,12 +36,40 @@ class ApiTestCase(unittest.TestCase):
 
 
 class CreateInstanceTestCase(ApiTestCase):
-    def setUp(self):
-        super(CreateInstanceTestCase, self).setUp()
-        self.resp = self.api.post("/resources")
 
-    def test_should_return_201(self):
+    @patch("api.connect")
+    def setUp(self, connect_mock):
+        super(CreateInstanceTestCase, self).setUp()
+
+        self.connect_mock = connect_mock
+        self.resp = self.api.post("/resources", data={'name': 'my_app'})
+
+    def test_should_return_204_if_hads_no_keyspace_name(self):
+        resp = self.api.post("/resources")
+        self.assertEqual(resp.status_code, 204)
+
+    def test_should_return_if_keyspace_is_created_201(self):
         self.assertEqual(self.resp.status_code, 201)
+
+    def test_should_connect_with_cassandra_server(self):
+        self.connect_mock.assert_called_once_with(host='my-cassandra-host.com', port='8888')
+
+    def test_should_run_create_keyspace_command(self):
+        self.connect_mock.return_value.cursor.return_value.execute.assert_called_once_with(
+            "CREATE KEYSPACE my_app WITH strategy_class = 'SimpleStrategy' AND strategy_options:replication_factor=3;"
+        )
+
+    @patch("api.connect")
+    def test_should_run_an_error_if_anithing_wen_wrong(self, connect_mock):
+        def side_effect(**kargs):
+            raise ProgrammingError('boom!')
+        connect_mock.side_effect = side_effect
+
+        resp = self.api.post("/resources", data={'name': 'my_app'})
+        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(json.loads(resp.data) , {u'error': u'boom!'})
+
+
 
 
 class RemoveInstanceTestCase(ApiTestCase):

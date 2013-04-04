@@ -1,4 +1,3 @@
 id: cassandra
 endpoint:
   production: production-endpoint.com
-  test: test-endpoint.com:8080
