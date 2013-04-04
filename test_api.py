@@ -33,6 +33,14 @@ class BindInstanceTestCase(ApiTestCase):
     def test_should_return_a_hardcoded_json(self):
         self.assertEqual(json.loads(self.resp.data) , {u'SOMEVAR': u'somevalue'})
 
+class UnbindInstanceTestCase(ApiTestCase):
+    def setUp(self):
+        super(UnbindInstanceTestCase, self).setUp()
+        self.resp = self.api.delete("/resources/my_instance/hostname/my_host")
+
+    def test_should_return_200(self):
+        self.assertEqual(self.resp.status_code, 200)
+
 
 
 if __name__ == "__main__":

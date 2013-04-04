@@ -11,3 +11,7 @@ def add_instance():
 def bind(name):
     out = jsonify(SOMEVAR="somevalue")
     return out, 201
+
+@app.route("/resources/<name>/hostname/<host>", methods=["DELETE"])
+def unbind(name, host):
+    return "", 200
