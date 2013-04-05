@@ -22,7 +22,7 @@ def add_instance():
             cql_command = "CREATE KEYSPACE {0} WITH strategy_class = 'SimpleStrategy' AND strategy_options:replication_factor=3;"
             cursor.execute(cql_command.format(keyspace))
         except (ProgrammingError, TTransportException), e:
-            return jsonify({'error':e.message}), 500
+            return e.message, 500
         return "", 201
     else:
         return "", 204
@@ -36,14 +36,18 @@ def remove_instance(name):
         cql_command = "DROP KEYSPACE {0}".format(name)
         cursor.execute(cql_command)
     except (ProgrammingError, TTransportException), e:
-        return jsonify({'error':e.message}), 500
+        return e.message, 500
 
     return "", 200
 
 @app.route("/resources/<name>", methods=["POST"])
 def bind(name):
-    out = jsonify(SOMEVAR="somevalue")
-    return out, 201
+    bind_values = {
+        'CASSANDRA_KEYSPACE': name,
+        'CASSANDRA_SERVER': cassandra_server,
+        'CASSANDRA_PORT': cassandra_port,
+    }
+    return jsonify(bind_values), 201
 
 @app.route("/resources/<name>/hostname/<host>", methods=["DELETE"])
 def unbind(name, host):
