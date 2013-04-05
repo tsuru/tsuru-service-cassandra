@@ -13,7 +13,6 @@ cassandra_port = os.environ.get("TSURU_CASSANDRA_PORT")
 
 @app.route("/resources", methods=["POST"])
 def add_instance():
-
     keyspace = None
     if request.method == 'POST' and 'name' in request.form:
         keyspace = request.form.get('name')
@@ -31,6 +30,14 @@ def add_instance():
 
 @app.route("/resources/<name>", methods=["DELETE"])
 def remove_instance(name):
+    try:
+        conn = connect(host=cassandra_server, port=cassandra_port)
+        cursor = conn.cursor()
+        cql_command = "DROP KEYSPACE {0}".format(name)
+        cursor.execute(cql_command)
+    except (ProgrammingError, TTransportException), e:
+        return jsonify({'error':e.message}), 500
+
     return "", 200
 
 @app.route("/resources/<name>", methods=["POST"])

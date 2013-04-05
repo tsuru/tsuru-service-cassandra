@@ -75,10 +75,29 @@ class CreateInstanceTestCase(ApiTestCase):
 class RemoveInstanceTestCase(ApiTestCase):
     def setUp(self):
         super(RemoveInstanceTestCase, self).setUp()
+        self.connect_mock = patch('api.connect').start()
         self.resp = self.api.delete("/resources/my_instance")
 
     def test_should_return_200(self):
         self.assertEqual(self.resp.status_code, 200)
+
+    def test_should_connect_with_cassandra_server(self):
+        self.connect_mock.assert_called_once_with(host='my-cassandra-host.com', port='8888')
+
+    def test_should_run_delete_keyspace_command(self):
+        self.connect_mock().cursor().execute.assert_called_once_with(
+            "DROP KEYSPACE my_instance"
+        )
+
+    @patch("api.connect")
+    def test_should_run_an_error_if_anithing_wen_wrong(self, connect_mock):
+        def side_effect(**kargs):
+            raise ProgrammingError('boom!')
+        connect_mock.side_effect = side_effect
+
+        resp = self.api.post("/resources", data={'name': 'my_app'})
+        self.assertEqual(resp.status_code, 500)
+        self.assertEqual(json.loads(resp.data), {u'error': u'boom!'})
 
 
 class BindInstanceTestCase(ApiTestCase):
