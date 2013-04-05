@@ -56,6 +56,14 @@ def unbind(name, host):
 
 @app.route("/resources/<name>/status", methods=["GET"])
 def status(name):
+    try:
+        conn = connect(host=cassandra_server, port=cassandra_port)
+        cursor = conn.cursor()
+        cql_command = "USE {0}".format(name)
+        cursor.execute(cql_command)
+    except (ProgrammingError, TTransportException), e:
+        return e.message, 500
+
     return "", 204
 
 if __name__ == "__main__":
