@@ -1,2 +1,3 @@
 Flask==0.9
+cql==1.4.0
 gunicorn==0.17.2
